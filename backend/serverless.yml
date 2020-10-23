@@ -7,7 +7,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   profile: serverless
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-west-1'}
@@ -15,6 +15,7 @@ provider:
   environment:
     TODO_TABLE: todos-${self:provider.stage}
     TODO_S3_BUCKET: ibrahim-serverless-todo-${self:provider.stage}
+    INDEX_NAME: ImageIdIndex
 
 functions:
   Auth:
@@ -88,7 +89,7 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-    
+              
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -116,7 +117,7 @@ resources:
           Version: "2012-10-17"
           Statement:
             - Sid: PublicReadForGetBucketObjects
-            Effect: Allow
-            Principal: '*'
-            Action: 's3:GetObject'
-            Resource: 'arn:aws:s3:::${self:provider.environment.TODO_S3_BUCKET}/*'
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.TODO_S3_BUCKET}/*'

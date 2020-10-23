@@ -61,6 +61,8 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   /* Axios.get(jwt.payload.iss + '.well-known/openid-configuration').then((response) => {
      tiz = console.log(response.data);
   });*/
+  
+  
 
   const response = await Axios.get(`${jwt.payload.iss }'/.well-known/openid-configuration'`)
   console.log('Todos:', response.data)
