@@ -8,14 +8,15 @@ plugins:
 provider:
   name: aws
   runtime: nodejs8.10
-
+  profile: serverless
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-west-1'}
+    
   environment:
     TODO_TABLE: todos-${self:provider.stage}
+    TODO_S3_BUCKET: ibrahim-serverless-todo-${self:provider.stage}
 
 functions:
-
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
@@ -28,8 +29,7 @@ functions:
           path: todos
 
   # TODO: Configure this function
-  GetTodos:
-  Create
+  CreateTodos:
     handler: src/lambda/http/createTodo.handler
     events:
       - http:
@@ -62,4 +62,61 @@ functions:
 
 resources:
   Resources:
-    # TODO: Add any necessary AWS resources
+    TodosTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: partitionKey
+            AttributeType: S
+          - AttributeName: sortKey
+            AttributeType: S
+          - AttributeName: indexKey
+            AttributeType: S
+        KeySchema:
+          - AttributeName: partitionKey
+            KeyType: HASH
+          - AttributeName: sortKey
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:provider.environment.TODOS_TABLE}
+        LocalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.INDEX_NAME}
+            KeySchema:
+              - AttributeName: partitionKey
+                KeyType: HASH
+              - AttributeName: indexKey
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+    
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.TODO_S3_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+              - '*'
+              AllowedHeaders:
+              - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: 
+          Ref: AttachmentsBucket
+        PolicyDocument:
+          Id: MyPolicy
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: 'arn:aws:s3:::${self:provider.environment.TODO_S3_BUCKET}/*'
