@@ -15,20 +15,20 @@ provider:
   environment:
     TODO_TABLE: todos-${self:provider.stage}
     TODO_S3_BUCKET: ibrahim-serverless-todo-${self:provider.stage}
-    INDEX_NAME: ImageIdIndex
+    INDEX_NAME: userId
 
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  GetTodos:
-    handler: src/lambda/http/getTodos.handler
-    events:
-      - http:
-          method: get
-          path: todos
-          cors: true
-          authorizer: Auth
+    GetTodos:
+      handler: src/lambda/http/getTodos.handler
+      events:
+        - http:
+            method: get
+            path: todos
+            authorizer: Auth
+            cors: true
     iamRoleStatements:
       - Effect: Allow
         Action:
