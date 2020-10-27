@@ -132,7 +132,7 @@ export const apiEndpoint = `https://${apiId}.execute-api.us-east-1.amazonaws.com
 export const authConfig = {
   domain: '...',    // Domain from Auth0
   clientId: '...',  // Client id from an Auth0 application
-  callbackUrl: 'http://localhost:3001/callback'
+  callbackUrl: 'http://localhost:3000/callback'
 }
 ```
 
