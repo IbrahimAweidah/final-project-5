@@ -1,19 +1,25 @@
-import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import 'source-map-support/register';
-import { verify, decode} from 'jsonwebtoken';
-import { createLogger } from '../../utils/logger';
-import Axios from 'axios';
-import { JwtPayload } from '../../auth/JwtPayload';
-import * as util from 'util';
-import {Jwt} from '../../auth/Jwt'
-const logger = createLogger('auth');
+
+import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
+import 'source-map-support/register'
+
+import { verify, decode } from 'jsonwebtoken'
+import { createLogger } from '../../utils/logger'
+import Axios from 'axios'
+import { JwtPayload } from '../../auth/JwtPayload'
+import { Jwt } from '../../auth/Jwt'
+
+
+const logger = createLogger('auth')
 
 const jwksUrl = 'https://dev-0rw8r0s2.eu.auth0.com/.well-known/jwks.json';
-export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
-  logger.info('Authorizing a user', event.authorizationToken);
+export const handler = async (
+  event: CustomAuthorizerEvent
+): Promise<CustomAuthorizerResult> => {
+  logger.info('Authorizing a user', event.authorizationToken)
   try {
-    const jwtToken = await verifyToken(event.authorizationToken);
-    logger.info('User was authorized', jwtToken);
+    const jwtToken = await verifyToken(event.authorizationToken)
+    logger.info('User was authorized', jwtToken)
+
     return {
       principalId: jwtToken.sub,
       policyDocument: {
@@ -26,9 +32,10 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
           }
         ]
       }
-    };
+    }
   } catch (e) {
-    logger.error('User not authorized', { error: e.message });
+    logger.error('User not authorized', { error: e.message })
+
     return {
       principalId: 'user',
       policyDocument: {
@@ -41,37 +48,46 @@ export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAutho
           }
         ]
       }
-    };
+    }
   }
 }
+
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const token = getToken(authHeader)
-  const response = await Axios.get(jwksUrl);
-  const jwks = response.data;
-  const keys:any[] = jwks.keys;
-  logger.info("jwks - "+util.inspect(jwks, false, null, true));
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
-  const signingKeys = keys.filter(key => key.use === 'sig' // JWK property `use` determines the JWK is for signing
-      && key.kty === 'RSA' // We are only supporting RSA
-      && key.kid           // The `kid` must be present to be useful for later
-      && key.x5c && key.x5c.length // Has useful public keys (we aren't using n or e)
-    ).map(key => {
-      return { kid: key.kid, nbf: key.nbf, x5c: key.x5c[0] };
-    });
-const signingKey = signingKeys.find(key => key.kid === jwt.header.kid);
-let certValue:string = signingKey.x5c;
-  
-  certValue = certValue.match(/.{1,64}/g).join('\n');
-  const finalCertKey:string = `-----BEGIN CERTIFICATE-----\n${certValue}\n-----END CERTIFICATE-----\n`;
-  logger.info("finalCertKey - "+util.inspect(finalCertKey, false, null, true));
-  let jwtPayload:JwtPayload = verify(token, finalCertKey, { algorithms: ['RS256'] }) as JwtPayload; 
-  return jwtPayload;
+  const jwtKid = jwt.header.kid
+  let cert: string | Buffer
+
+  // TODO: Implement token verification
+
+  try {
+    const jwks = await Axios.get(jwksUrl);
+    const signingKey = jwks.data.keys.filter(k => k.kid === jwtKid)[0];
+
+    if (!signingKey) {
+      throw new Error(`Unable to find a signing key that matches '${jwtKid}'`);
+    }
+    const { x5c } = signingKey;
+
+    cert = `-----BEGIN CERTIFICATE-----\n${x5c[0]}\n-----END CERTIFICATE-----`;
+
+  } catch (error) {
+    console.log('Error While getting Certificate : ', error);
+  }
+
+  return verify(token, cert, { algorithms: ['RS256'] }) as JwtPayload;
 }
+
+
+
 function getToken(authHeader: string): string {
-  if (!authHeader) throw new Error('No authentication header');
+  if (!authHeader) throw new Error('No authentication header')
+
   if (!authHeader.toLowerCase().startsWith('bearer '))
-    throw new Error('Invalid authentication header');
-  const split = authHeader.split(' ');
-  const token = split[1];
-  return token;
+    throw new Error('Invalid authentication header')
+
+  const split = authHeader.split(' ')
+  const token = split[1]
+
+  return token
 }

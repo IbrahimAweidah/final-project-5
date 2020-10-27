@@ -21,7 +21,6 @@ functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  # TODO: Configure this function
   GetTodos:
     handler: src/lambda/http/getTodos.handler
     events:
@@ -29,6 +28,22 @@ functions:
           method: get
           path: todos
           cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}/index/${self:provider.environment.INDEX_NAME}
+      - Effect: "Allow"
+        Action:
+          - xray:PutTelemetryRecords
+          - xray:PutTraceSegments
+        Resource: "*"
 
   # TODO: Configure this function
   CreateTodos:
@@ -72,28 +87,17 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: partitionKey
+          - AttributeName: userId
             AttributeType: S
-          - AttributeName: sortKey
-            AttributeType: S
-          - AttributeName: indexKey
+          - AttributeName: todoId
             AttributeType: S
         KeySchema:
-          - AttributeName: partitionKey
+          - AttributeName: userId
             KeyType: HASH
-          - AttributeName: sortKey
+          - AttributeName: todoId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
-        TableName: ${self:provider.environment.TODOS_TABLE}
-        LocalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.INDEX_NAME}
-            KeySchema:
-              - AttributeName: partitionKey
-                KeyType: HASH
-              - AttributeName: indexKey
-                KeyType: RANGE
-            Projection:
-              ProjectionType: ALL
+        TableName: ${self:provider.environment.TODO_TABLE}
               
     AttachmentsBucket:
       Type: AWS::S3::Bucket
