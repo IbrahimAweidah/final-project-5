@@ -8,24 +8,15 @@ plugins:
 provider:
   name: aws
   runtime: nodejs12.x
-
+  profile: serverless
   stage: ${opt:stage, 'dev'}
-  region: ${opt:region, 'us-west-1'}
+  region: ${opt:region, 'eu-west-1'}
 
   environment:
-    TODOS_TABLE: serverless-todos-table-prod-${self:provider.stage}
+    TODOS_TABLE: serverless-todos-table-${self:provider.stage}
     INDEX_NAME: UserIdIndex
-    S3_BUCKET: ibrahim-serverless-project-${self:provider.stage}
+    S3_BUCKET: ibrahim-serverless-todo-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
-
-
-custom:
-  dynamodb:
-    start:
-      migrate: true
-      inMemory: true
-    stages:
-      - dev
 
 functions:
 
@@ -170,3 +161,18 @@ resources:
                 - DELETE
                 - HEAD
               MaxAge: 3000
+
+    # S3 Bucket Policy
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: Policy
+          Version: '2012-10-17'
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*' # Anyone
+              Action: s3:*
+              Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
+        Bucket: !Ref AttachmentBucket
