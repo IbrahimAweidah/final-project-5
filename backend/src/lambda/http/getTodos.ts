@@ -1,16 +1,13 @@
-import 'source-map-support/register'
-import * as middy from 'middy'
-import { cors } from 'middy/middlewares'
-import { getAllTodos } from "../../Logic/todos";
-import { getUserId } from '../utils'
-import { APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda'
+import 'source-map-support/register';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  APIGatewayProxyHandler
+} from 'aws-lambda';
+import { getTodos } from '../../businessLogic/todos';
 
-
-export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const userId = getUserId(event);
-  console.log('Processing event: ', event)
- 
-  const todos = await getAllTodos(userId);
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+console.log('getTodos lambda')
   return {
     statusCode: 200,
     headers: {
@@ -18,13 +15,7 @@ export const handler = middy(async (event: APIGatewayProxyEvent): Promise<APIGat
       'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({
-      items: todos
+      items: await getTodos(event)
     })
-};
-})
-
-handler.use(
-  cors({
-    credentials: true
-  })
-)
+  };
+}

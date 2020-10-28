@@ -2,9 +2,9 @@ import 'source-map-support/register'
 import * as AWS  from 'aws-sdk'
 import * as uuid from 'uuid'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-const bucketName = process.env.TODO_S3_BUCKET
+const bucketName = process.env.S3_BUCKET
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION
-const todoTable = process.env.TODO_TABLE
+const todoTable = process.env.TODOS_TABLE
 const docClient = new AWS.DynamoDB.DocumentClient()
 const s3 = new AWS.S3({
   signatureVersion: 'v4'
@@ -20,10 +20,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   return {
     statusCode: 201,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': true
-    },
+    
     body: JSON.stringify({
       newItem: newItem,
       uploadUrl: url

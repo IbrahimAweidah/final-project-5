@@ -6,7 +6,7 @@
     "@types/axios": "^0.14.0",
     "@types/http-errors": "^1.6.1",
     "aws-lambda": "^1.0.6",
-    "aws-xray-sdk": "^2.2.0",
+    "aws-xray-sdk": "^2.5.0",
     "axios": "^0.19.2",
     "cors": "^2.8.5",
     "elasticsearch": "^15.0.0",
@@ -16,7 +16,8 @@
     "jwk-to-pem": "^2.0.4",
     "lodash": "^4.17.20",
     "middy": "^0.27.1",
-    "serverless": "^2.4.0",
+    "serverless": "^1.61.2",
+    "serverless-aws-alias": "^1.8.0",
     "source-map-support": "^0.5.19",
     "uuid": "^3.4.0",
     "winston": "^3.3.3"
