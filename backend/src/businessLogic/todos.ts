@@ -80,7 +80,7 @@ export async function generateUploadUrl(event: APIGatewayProxyEvent): Promise<st
     const createSignedUrlRequest = {
         Bucket: bucket,
         Key: todoId,
-        Expires: urlExpiration
+        Expires: parseInt(urlExpiration)
     }
     return await todosStorage.getPresignedUploadURL(createSignedUrlRequest);
 }
