@@ -3,6 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import { generateUploadUrl } from '../../businessLogic/todos';
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 const theSignedUrl = await generateUploadUrl(event);
+console.log('theSignedUrl:' + theSignedUrl )
   return {
     statusCode: 202,
     headers: {

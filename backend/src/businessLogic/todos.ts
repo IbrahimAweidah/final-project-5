@@ -13,21 +13,21 @@ import { TodoItem } from '../models/TodoItem';
 const todosAccess = new TodosAccess();
 const todosStorage = new TodosStorage();
 
-export async function createTodo(event: APIGatewayProxyEvent,
-                                 createTodoRequest: CreateTodoRequest): Promise<TodoItem> {
+export async function createTodo(event: APIGatewayProxyEvent, createTodoRequest: CreateTodoRequest): Promise<TodoItem> {
     const todoId = uuid.v4();
     const userId = getUserId(event);
     const createdAt = new Date(Date.now()).toISOString();
+    const bucketName = await todosStorage.getBucketName();
 
     const todoItem = {
         userId,
         todoId,
         createdAt,
         done: false,
-        attachmentUrl: `https://${todosStorage.getBucketName()}.s3.amazonaws.com/${todoId}`,
+        attachmentUrl: `https://${bucketName}.s3.amazonaws.com/${todoId}`,
         ...createTodoRequest
     };
-
+    console.log('createTodos userId:' + userId + "todoId:"+todoId +"bucketname:" +bucketName )
     await todosAccess.addTodoToDB(todoItem);
 
     return todoItem;
@@ -40,7 +40,8 @@ export async function deleteTodo(event: APIGatewayProxyEvent) {
     if (!(await todosAccess.getTodoFromDB(todoId, userId))) {
         return false;
     }
-
+    console.log('generateUploadUrl todoId:' + todoId + "userId:"+userId )
+userId
     await todosAccess.deleteTodoFromDB(todoId, userId);
 
     return true;
@@ -49,13 +50,13 @@ export async function deleteTodo(event: APIGatewayProxyEvent) {
 export async function getTodo(event: APIGatewayProxyEvent) {
     const todoId = event.pathParameters.todoId;
     const userId = getUserId(event);
-
+    console.log('getTodos userId:' + userId + "todoId:"+todoId )
     return await todosAccess.getTodoFromDB(todoId, userId);
 }
 
 export async function getTodos(event: APIGatewayProxyEvent) {
     const userId = getUserId(event);
-
+    console.log('getTodos userId:' + userId)
     return await todosAccess.getAllTodosFromDB(userId);
 }
 
@@ -67,7 +68,7 @@ export async function updateTodo(event: APIGatewayProxyEvent,
     if (!(await todosAccess.getTodoFromDB(todoId, userId))) {
         return false;
     }
-
+    console.log('updateTodo userId:' + userId + "todoId:"+todoId )
     await todosAccess.updateTodoInDB(todoId, userId, updateTodoRequest);
 
     return true;
@@ -82,5 +83,6 @@ export async function generateUploadUrl(event: APIGatewayProxyEvent): Promise<st
         Key: todoId,
         Expires: parseInt(urlExpiration)
     }
+    console.log('generateUploadUrl bucket:' + bucket + "todoId:"+todoId )
     return await todosStorage.getPresignedUploadURL(createSignedUrlRequest);
 }

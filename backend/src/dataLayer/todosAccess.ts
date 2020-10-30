@@ -80,7 +80,7 @@ export default class TodosAccess {
   }
 
   async updateTodoAttachmentUrl(todoId: string, attachmentUrl: string){
-
+    console.log('updateTodoAttachmentUrl' + todoId +" "+ attachmentUrl)
     await this.docClient.update({
         TableName: this.todosTable,
         Key: {
