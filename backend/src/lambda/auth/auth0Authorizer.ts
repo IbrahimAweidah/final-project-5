@@ -1,23 +1,26 @@
-import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import 'source-map-support/register';
+import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
+import 'source-map-support/register'
+import * as jwksClient from 'jwks-rsa'
 
-import { verify } from 'jsonwebtoken';
-import { createLogger } from '../../utils/logger';
-import Axios from 'axios';
-import { JwtPayload } from '../../auth/JwtPayload';
+import { verify, decode } from 'jsonwebtoken'
+import { createLogger } from '../../utils/logger'
+import { Jwt } from '../../auth/Jwt'
+import { JwtPayload } from '../../auth/JwtPayload'
+import { JwtHeader } from 'jsonwebtoken'
 
-const logger = createLogger('auth');
-
-// hardcoded based on boilerplate specifications
-const jwksUrl = 'https://dev-0rw8r0s2.eu.auth0.com/.well-known/jwks.json';
+const logger = createLogger('auth')
+const jwksUrl = process.env.JWKS_URL
+const client = jwksClient({
+  jwksUri: jwksUrl
+});
 
 export const handler = async (
   event: CustomAuthorizerEvent
 ): Promise<CustomAuthorizerResult> => {
-  logger.info('Authorizing a user', event.authorizationToken);
+  logger.info('Authorizing a user', event.authorizationToken)
   try {
-    const jwtToken = await verifyToken(event.authorizationToken);
-    logger.info('User was authorized', jwtToken);
+    const jwtToken = await verifyToken(event.authorizationToken)
+    logger.info('User was authorized', jwtToken)
 
     return {
       principalId: jwtToken.sub,
@@ -31,9 +34,9 @@ export const handler = async (
           }
         ]
       }
-    };
+    }
   } catch (e) {
-    logger.error('User not authorized', { error: e.message });
+    logger.error('User not authorized', { error: e.message })
 
     return {
       principalId: 'user',
@@ -47,34 +50,44 @@ export const handler = async (
           }
         ]
       }
-    };
+    }
   }
 }
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
-  const token = getToken(authHeader);
-  // const jwt: Jwt = decode(token, { complete: true }) as Jwt
-
-  let certif;
-  try {
-    const res = await Axios.get(jwksUrl);
-    const pemData = res['data']['keys'][0]['x5c'][0];
-    certif = `-----BEGIN CERTIFICATE-----\n${pemData}\n-----END CERTIFICATE-----`;
-  } catch (err) {
-    console.log(err);
+  const token = getToken(authHeader)
+  const jwt: Jwt = decode(token, { complete: true }) as Jwt
+  if(!jwt || !jwt.header) {
+    throw new Error("Invalid jwt header")
   }
 
-  return verify(token, certif, { algorithms: ['RS256']}) as JwtPayload;
+  let key = await getKey(jwt.header)
+  let publicKey = key.getPublicKey()
+
+  return verify(token,publicKey) as JwtPayload
+}
+
+async function getKey(header: JwtHeader): Promise<jwksClient.SigningKey>{
+  return new Promise((resolve,reject) => {
+    client.getSigningKey(header.kid, function(err: Error, key: jwksClient.SigningKey) {
+        if(err){
+          reject(err)
+        }
+        resolve(key)
+        
+    });
+  })
+
 }
 
 function getToken(authHeader: string): string {
-  if (!authHeader) throw new Error('No authentication header');
+  if (!authHeader) throw new Error('No authentication header')
 
   if (!authHeader.toLowerCase().startsWith('bearer '))
-    throw new Error('Invalid authentication header');
+    throw new Error('Invalid authentication header')
 
-  const split = authHeader.split(' ');
-  const token = split[1];
+  const split = authHeader.split(' ')
+  const token = split[1]
 
-  return token;
+  return token
 }

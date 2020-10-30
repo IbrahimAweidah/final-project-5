@@ -10,7 +10,8 @@ export default class TodosAccess {
   constructor(
       private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
       private readonly todosTable = process.env.TODOS_TABLE,
-      private readonly indexName = process.env.INDEX_NAME
+      private readonly indexName = process.env.INDEX_NAME,
+      private readonly todosStorage = process.env.S3_BUCKET
   ) {}
 
   async addTodoToDB(todoItem) {
@@ -56,6 +57,8 @@ export default class TodosAccess {
   }
 
   async updateTodoInDB(todoId, userId, updatedTodo) {
+    console.log("updateTodo2:" +todoId+ " " +userId)
+    
       await this.docClient.update({
           TableName: this.todosTable,
           Key: {
@@ -75,4 +78,18 @@ export default class TodosAccess {
           }
       }).promise();
   }
+
+  async updateTodoAttachmentUrl(todoId: string, attachmentUrl: string){
+
+    await this.docClient.update({
+        TableName: this.todosTable,
+        Key: {
+            "todoId": todoId
+        },
+        UpdateExpression: "set attachmentUrl = :attachmentUrl",
+        ExpressionAttributeValues: {
+            ":attachmentUrl": `https://${this.todosStorage}.s3.amazonaws.com/${attachmentUrl}`
+        }
+    }).promise();
+}
 }

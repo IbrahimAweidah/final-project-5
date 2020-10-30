@@ -17,9 +17,9 @@ provider:
     INDEX_NAME: UserIdIndex
     S3_BUCKET: ibrahim-serverless-todo-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
+    JWKS_URL: https://dev-0rw8r0s2.eu.auth0.com/.well-known/jwks.json
 
 functions:
-
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
@@ -66,9 +66,25 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb:UpdateItem
+          - dynamodb:Query
+          - dynamodb:PutItem
           - dynamodb:GetItem
+          - dynamodb:DeleteItem
+          - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:PutItem
+          - dynamodb:GetItem
+          - dynamodb:DeleteItem
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/UserIdIndex
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+          - s3:GetObject
+        Resource: "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*"
 
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
@@ -96,9 +112,17 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/UserIdIndex
+      - Effect: Allow
+        Action:
           - s3:PutObject
           - s3:GetObject
-        Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
+        Resource: "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*"
 
 resources:
   Resources:
