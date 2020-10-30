@@ -10,7 +10,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const theUpdatedTODO: UpdateTodoRequest = JSON.parse(event.body);
 
   const isChanged = await updateTodo(event, theUpdatedTODO);
-
+  console.log("Check changed" + isChanged)
 
   if (!isChanged) {
     return {

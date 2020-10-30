@@ -5,6 +5,8 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-aws-alias
+  - serverless-aws-documentation
+  - serverless-reqvalidator-plugin
 provider:
   name: aws
   runtime: nodejs12.x
@@ -18,6 +20,20 @@ provider:
     S3_BUCKET: ibrahim-serverless-todo-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
     JWKS_URL: https://dev-0rw8r0s2.eu.auth0.com/.well-known/jwks.json
+
+custom:
+  documentation:
+    api:
+      info:
+        Version: v1.0.1
+        title: Todo APP
+        description: Serverless application with an api to post edit and delete todos.
+  dynamodb:
+    start:
+      migrate: true
+      inMemory: true
+    stages:
+      - dev    
 
 functions:
   Auth:
@@ -40,7 +56,7 @@ functions:
         Action:
           - dynamodb:Query
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/UserIdIndex
-
+      
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
     events:
@@ -49,6 +65,9 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          request:
+            schema:
+              application/json: ${file(src/models/create-todo-model.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:

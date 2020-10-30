@@ -3,10 +3,8 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import { deleteTodo } from '../../businessLogic/todos';
 
 
-
-
-
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
 
 
   if (!(await deleteTodo(event))) {
@@ -18,9 +16,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     };
   }
 
-
-
-
+  console.log("todo exists and will be removed")
 
   return {
     statusCode: 202,

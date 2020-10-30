@@ -26,6 +26,8 @@
     "@types/react-router-dom": "^4.3.5",
     "@types/styled-components": "^4.4.3",
     "auth0-js": "^9.14.0",
+    "serverless-aws-documentation": "^1.1.0",
+    "serverless-reqvalidator-plugin": "^1.0.3",
     "typescript": "3.4.3"
   },
   "scripts": {
