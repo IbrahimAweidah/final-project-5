@@ -14,106 +14,106 @@ import {
   Loader
 } from 'semantic-ui-react'
 
-import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
+import { createJob, deleteJob, getJobs, patchJob } from '../api/jobs-api'
 import Auth from '../auth/Auth'
-import { Todo } from '../types/Todo'
+import { Job } from '../types/Job'
 
-interface TodosProps {
+interface JobsProps {
   auth: Auth
   history: History
 }
 
-interface TodosState {
-  todos: Todo[]
-  newTodoName: string
-  loadingTodos: boolean
+interface JobsState {
+  jobs: Job[]
+  newJobName: string
+  loadingJobs: boolean
 }
 
-export class Todos extends React.PureComponent<TodosProps, TodosState> {
-  state: TodosState = {
-    todos: [],
-    newTodoName: '',
-    loadingTodos: true
+export class Jobs extends React.PureComponent<JobsProps, JobsState> {
+  state: JobsState = {
+    jobs: [],
+    newJobName: '',
+    loadingJobs: true
   }
 
   handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ newTodoName: event.target.value })
+    this.setState({ newJobName: event.target.value })
   }
 
-  onEditButtonClick = (todoId: string) => {
-    this.props.history.push(`/todos/${todoId}/edit`)
+  onEditButtonClick = (jobId: string) => {
+    this.props.history.push(`/jobs/${jobId}/edit`)
   }
 
-  onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
+  onJobCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
     try {
       const dueDate = this.calculateDueDate()
-      const newTodo = await createTodo(this.props.auth.getIdToken(), {
-        name: this.state.newTodoName,
+      const newJob = await createJob(this.props.auth.getIdToken(), {
+        name: this.state.newJobName,
         dueDate
       })
       this.setState({
-        todos: [...this.state.todos, newTodo],
-        newTodoName: ''
+        jobs: [...this.state.jobs, newJob],
+        newJobName: ''
       })
     } catch {
-      alert('Todo creation failed')
+      alert('Job creation failed')
     }
   }
 
-  onTodoDelete = async (todoId: string) => {
+  onJobDelete = async (jobId: string) => {
     try {
-      await deleteTodo(this.props.auth.getIdToken(), todoId)
+      await deleteJob(this.props.auth.getIdToken(), jobId)
       this.setState({
-        todos: this.state.todos.filter(todo => todo.todoId != todoId)
+        jobs: this.state.jobs.filter(job => job.jobId != jobId)
       })
     } catch {
-      alert('Todo deletion failed')
+      alert('Job deletion failed')
     }
   }
 
-  onTodoCheck = async (pos: number) => {
+  onJobCheck = async (pos: number) => {
     try {
-      const todo = this.state.todos[pos]
-      await patchTodo(this.props.auth.getIdToken(), todo.todoId, {
-        name: todo.name,
-        dueDate: todo.dueDate,
-        done: !todo.done
+      const job = this.state.jobs[pos]
+      await patchJob(this.props.auth.getIdToken(), job.jobId, {
+        name: job.name,
+        dueDate: job.dueDate,
+        done: !job.done
       })
       this.setState({
-        todos: update(this.state.todos, {
-          [pos]: { done: { $set: !todo.done } }
+        jobs: update(this.state.jobs, {
+          [pos]: { done: { $set: !job.done } }
         })
       })
     } catch {
-      alert('Todo deletion failed')
+      alert('Job deletion failed')
     }
   }
 
   async componentDidMount() {
     try {
-      const todos = await getTodos(this.props.auth.getIdToken())
+      const jobs = await getJobs(this.props.auth.getIdToken())
       this.setState({
-        todos,
-        loadingTodos: false
+        jobs,
+        loadingJobs: false
       })
     } catch (e) {
-      alert(`Failed to fetch todos: ${e.message}`)
+      alert(`Failed to fetch jobs: ${e.message}`)
     }
   }
 
   render() {
     return (
       <div>
-        <Header as="h1">TODOs</Header>
+        <Header as="h1">Lediga jobb</Header>
 
-        {this.renderCreateTodoInput()}
+        {this.renderCreateJobInput()}
 
-        {this.renderTodos()}
+        {this.renderJobs()}
       </div>
     )
   }
 
-  renderCreateTodoInput() {
+  renderCreateJobInput() {
     return (
       <Grid.Row>
         <Grid.Column width={16}>
@@ -122,12 +122,12 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
               color: 'teal',
               labelPosition: 'left',
               icon: 'add',
-              content: 'New task',
-              onClick: this.onTodoCreate
+              content: 'Nytt jobb',
+              onClick: this.onJobCreate
             }}
             fluid
             actionPosition="left"
-            placeholder="To change the world..."
+            placeholder="För att lägga till ett nytt jobb..."
             onChange={this.handleNameChange}
           />
         </Grid.Column>
@@ -138,47 +138,47 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     )
   }
 
-  renderTodos() {
-    if (this.state.loadingTodos) {
+  renderJobs() {
+    if (this.state.loadingJobs) {
       return this.renderLoading()
     }
 
-    return this.renderTodosList()
+    return this.renderJobsList()
   }
 
   renderLoading() {
     return (
       <Grid.Row>
         <Loader indeterminate active inline="centered">
-          Loading TODOs
+          Laddar jobb
         </Loader>
       </Grid.Row>
     )
   }
 
-  renderTodosList() {
+  renderJobsList() {
     return (
       <Grid padded>
-        {this.state.todos.map((todo, pos) => {
+        {this.state.jobs.map((job, pos) => {
           return (
-            <Grid.Row key={todo.todoId}>
+            <Grid.Row key={job.jobId}>
               <Grid.Column width={1} verticalAlign="middle">
                 <Checkbox
-                  onChange={() => this.onTodoCheck(pos)}
-                  checked={todo.done}
+                  onChange={() => this.onJobCheck(pos)}
+                  checked={job.done}
                 />
               </Grid.Column>
               <Grid.Column width={10} verticalAlign="middle">
-                {todo.name}
+                {job.name}
               </Grid.Column>
               <Grid.Column width={3} floated="right">
-                {todo.dueDate}
+                {job.dueDate}
               </Grid.Column>
               <Grid.Column width={1} floated="right">
                 <Button
                   icon
                   color="blue"
-                  onClick={() => this.onEditButtonClick(todo.todoId)}
+                  onClick={() => this.onEditButtonClick(job.jobId)}
                 >
                   <Icon name="pencil" />
                 </Button>
@@ -187,13 +187,13 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
                 <Button
                   icon
                   color="red"
-                  onClick={() => this.onTodoDelete(todo.todoId)}
+                  onClick={() => this.onJobDelete(job.jobId)}
                 >
                   <Icon name="delete" />
                 </Button>
               </Grid.Column>
-              {todo.attachmentUrl && (
-                <Image src={todo.attachmentUrl}  size="small" wrapped />
+              {job.attachmentUrl && (
+                <Image src={job.attachmentUrl}  size="small" wrapped />
               )}
               <Grid.Column width={16}>
                 <Divider />

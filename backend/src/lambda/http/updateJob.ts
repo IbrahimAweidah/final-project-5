@@ -1,22 +1,22 @@
 import 'source-map-support/register';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
-import { updateTodo } from '../../businessLogic/todos';
-import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest';
+import { updateJob } from '../../businessLogic/jobs';
+import { UpdateJobRequest } from '../../requests/UpdateJobRequest';
 
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
 
-  const theUpdatedTODO: UpdateTodoRequest = JSON.parse(event.body);
+  const theUpdatedJOB: UpdateJobRequest = JSON.parse(event.body);
 
-  const isChanged = await updateTodo(event, theUpdatedTODO);
+  const isChanged = await updateJob(event, theUpdatedJOB);
   console.log("Check changed" + isChanged)
 
   if (!isChanged) {
     return {
       statusCode: 404,
       body: JSON.stringify({
-        error: 'Sorry, but this todo does not exist'
+        error: 'Sorry, but this job does not exist'
       })
     };
   }

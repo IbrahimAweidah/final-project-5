@@ -1,7 +1,7 @@
 {
-  "name": "serverless-todo-app",
+  "name": "serverless-job-app",
   "version": "1.0.0",
-  "description": "Serverless TODO image app",
+  "description": "Serverless JOB image app",
   "dependencies": {
     "@types/axios": "^0.14.0",
     "@types/http-errors": "^1.6.1",
@@ -19,6 +19,7 @@
     "middy": "^0.27.1",
     "serverless": "^1.61.2",
     "serverless-aws-alias": "^1.8.0",
+    "serverless-s3-remover": "^0.6.0",
     "source-map-support": "^0.5.19",
     "uuid": "^3.4.0",
     "winston": "^3.3.3"

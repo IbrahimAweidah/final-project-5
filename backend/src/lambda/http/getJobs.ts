@@ -4,10 +4,10 @@ import {
   APIGatewayProxyResult,
   APIGatewayProxyHandler
 } from 'aws-lambda';
-import { getTodos } from '../../businessLogic/todos';
+import { getJobs } from '../../businessLogic/jobs';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-console.log('getTodos lambda')
+console.log('getJobs lambda')
   return {
     statusCode: 200,
     headers: {
@@ -15,7 +15,7 @@ console.log('getTodos lambda')
       'Access-Control-Allow-Credentials': true
     },
     body: JSON.stringify({
-      items: await getTodos(event)
+      items: await getJobs(event)
     })
   };
 }

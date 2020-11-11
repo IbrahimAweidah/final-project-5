@@ -1,5 +1,5 @@
-export interface Todo {
-  todoId: string
+export interface Job {
+  jobId: string
   createdAt: string
   name: string
   dueDate: string

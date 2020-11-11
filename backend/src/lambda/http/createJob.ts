@@ -1,12 +1,12 @@
 import 'source-map-support/register';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
-import { CreateTodoRequest } from '../../requests/CreateTodoRequest';
-import { createTodo } from '../../businessLogic/todos';
+import { CreateJobRequest } from '../../requests/CreateJobRequest';
+import { createJob } from '../../businessLogic/jobs';
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
-const theNewTODO: CreateTodoRequest = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
-console.log(theNewTODO.name)
-  if (!theNewTODO.name) {
+const theNewJOB: CreateJobRequest = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+console.log(theNewJOB.name)
+  if (!theNewJOB.name) {
     return {
       statusCode: 400,
       body: JSON.stringify({
@@ -16,7 +16,7 @@ console.log(theNewTODO.name)
   }
 
 
-  const todo = await createTodo(event, theNewTODO);
+  const job = await createJob(event, theNewJOB);
 
   return {
     statusCode: 201,
@@ -26,7 +26,7 @@ console.log(theNewTODO.name)
     },
 
     body: JSON.stringify({
-      item: todo
+      item: job
     })
   };
 }

@@ -6,36 +6,36 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 const AWSXRay = require('aws-xray-sdk');
 const XAWS = AWSXRay.captureAWS(AWS);
 
-export default class TodosAccess {
+export default class JobsAccess {
   constructor(
       private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
-      private readonly todosTable = process.env.TODOS_TABLE,
+      private readonly jobsTable = process.env.JOBS_TABLE,
       private readonly indexName = process.env.INDEX_NAME,
-      private readonly todosStorage = process.env.S3_BUCKET
+      private readonly jobsStorage = process.env.S3_BUCKET
   ) {}
 
-  async addTodoToDB(todoItem) {
+  async addJobToDB(jobItem) {
       await this.docClient.put({
-          TableName: this.todosTable,
-          Item: todoItem
+          TableName: this.jobsTable,
+          Item: jobItem
       }).promise();
   }
 
-  async deleteTodoFromDB(todoId, userId) {
+  async deleteJobFromDB(jobId, userId) {
       await this.docClient.delete({
-          TableName: this.todosTable,
+          TableName: this.jobsTable,
           Key: {
-              todoId,
+              jobId,
               userId
           }
       }).promise();
   }
 
-  async getTodoFromDB(todoId, userId) {
+  async getJobFromDB(jobId, userId) {
       const result = await this.docClient.get({
-          TableName: this.todosTable,
+          TableName: this.jobsTable,
           Key: {
-              todoId,
+              jobId,
               userId
           }
       }).promise();
@@ -43,9 +43,9 @@ export default class TodosAccess {
       return result.Item;
   }
 
-  async getAllTodosFromDB(userId) {
+  async getAllJobsFromDB(userId) {
       const result = await this.docClient.query({
-          TableName: this.todosTable,
+          TableName: this.jobsTable,
           IndexName: this.indexName,
           KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: {
@@ -56,20 +56,20 @@ export default class TodosAccess {
       return result.Items;
   }
 
-  async updateTodoInDB(todoId, userId, updatedTodo) {
-    console.log("updateTodo2:" +todoId+ " " +userId)
+  async updateJobInDB(jobId, userId, updatedJob) {
+    console.log("updateJob2:" +jobId+ " " +userId)
     
       await this.docClient.update({
-          TableName: this.todosTable,
+          TableName: this.jobsTable,
           Key: {
-              todoId,
+              jobId,
               userId
           },
           UpdateExpression: 'set #name = :n, #dueDate = :due, #done = :d',
           ExpressionAttributeValues: {
-              ':n': updatedTodo.name,
-              ':due': updatedTodo.dueDate,
-              ':d': updatedTodo.done
+              ':n': updatedJob.name,
+              ':due': updatedJob.dueDate,
+              ':d': updatedJob.done
           },
           ExpressionAttributeNames: {
               '#name': 'name',
@@ -79,16 +79,16 @@ export default class TodosAccess {
       }).promise();
   }
 
-  async updateTodoAttachmentUrl(todoId: string, attachmentUrl: string){
-    console.log('updateTodoAttachmentUrl' + todoId +" "+ attachmentUrl)
+  async updateJobAttachmentUrl(jobId: string, attachmentUrl: string){
+    console.log('updateJobAttachmentUrl' + jobId +" "+ attachmentUrl)
     await this.docClient.update({
-        TableName: this.todosTable,
+        TableName: this.jobsTable,
         Key: {
-            "todoId": todoId
+            "jobId": jobId
         },
         UpdateExpression: "set attachmentUrl = :attachmentUrl",
         ExpressionAttributeValues: {
-            ":attachmentUrl": `https://${this.todosStorage}.s3.amazonaws.com/${attachmentUrl}`
+            ":attachmentUrl": `https://${this.jobsStorage}.s3.amazonaws.com/${attachmentUrl}`
         }
     }).promise();
 }
